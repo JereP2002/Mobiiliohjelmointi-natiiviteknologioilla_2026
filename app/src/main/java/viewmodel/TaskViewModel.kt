@@ -1,29 +1,48 @@
 package com.example.week_1_domin.viewmodel
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+
 import androidx.lifecycle.ViewModel
-import com.example.week_1_domin.domain.Task
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import com.example.week_1_domin.model.Task
+import kotlin.collections.filterNot
+import kotlin.collections.map
 
 class TaskViewModel : ViewModel() {
-    var task by mutableStateOf<List<Task>>(emptyList())
-        private set
 
-    init {
-        task = listOf(
-            Task(id = 1, title = "Compose UI", description = "Build first screen", priority = 1, dueDate = "2026-1-13", done = false),
-            Task(id = 2, title = "ViewModel", description = "Add state management", priority = 2, dueDate = "2026-1-13", done = false),
-            Task(id = 3, title = "Demo video", description = "Record Youtube demo", priority = 3, dueDate = "2026-1-13", done = false)
+    private val _tasks = MutableStateFlow<List<Task>>(
+        listOf(
+            Task(1, "Compose UI", "Build UI", 1, "2026-01-13", false),
+            Task(2, "ViewModel", "StateFlow", 2, "2026-01-13", false)
         )
-    }
+    )
 
-    fun addTask(newTask: Task) {
-        task = task + newTask
+    val tasks: StateFlow<List<Task>> = _tasks
+
+    fun addTask(title: String) {
+        val newTask = Task(
+            id = (_tasks.value.maxOfOrNull { it.id } ?: 0) + 1,
+            title = title,
+            description = "Description",
+            priority = 1,
+            dueDate = "2026-01-13",
+            done = false
+        )
+        _tasks.value = _tasks.value + newTask
     }
 
     fun toggleDone(id: Int) {
-        task = task.map {
-            if (id == it.id) it.copy(done = !it.done) else it
+        _tasks.value = _tasks.value.map {
+            if (it.id == id) it.copy(done = !it.done) else it
         }
+    }
+
+    fun updateTask(updated: Task) {
+        _tasks.value = _tasks.value.map {
+            if (it.id == updated.id) updated else it
+        }
+    }
+
+    fun removeTask(task: Task) {
+        _tasks.value = _tasks.value.filterNot { it.id == task.id }
     }
 }
